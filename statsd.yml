@@ -1,0 +1,43 @@
+---
+- name: statsd
+  hosts: graphite-grafana
+  sudo: yes
+
+  vars:
+    statsd_version: v0.7.2
+    statsd_debug: 'false'
+    statsd_port: 8125
+
+    graphite_port: 2003
+    graphite_host: localhost
+    delete_idle_stats: 'false'
+
+  tasks:
+
+  - name: install statsd dependencies
+    apt: "name={{ item }} update_cache=yes"
+    with_items:
+      - git
+      - nodejs
+      - npm
+
+  - name: create node user
+    user: name=node state=present shell=/bin/false system=yes
+
+  - name: create log directory
+    file: path=/var/log/statsd owner=node group=node state=directory
+
+  - name: install statsd from github
+    git: "repo=https://github.com/etsy/statsd.git dest=/opt/statsd update=no version={{ statsd_version }}"
+
+  - name: configure statsd
+    template: src=templates/opt/statsd/local_config.js.j2 dest=/opt/statsd/local_config.js owner=node group=node mode=0444
+
+  - name: Set file permissions
+    command: /bin/chown -R node:node /opt/statsd
+
+  - name: Create statsd init.d script
+    template: src=templates/etc/init/statsd.Debian.j2 dest=/etc/init.d/statsd owner=root group=root mode=0755
+
+  - name: Start statsd
+    service: name=statsd state=running enabled=yes

@@ -1,0 +1,16 @@
+{
+     port: {{ statsd_port }}
+    ,backends: [
+          './backends/graphite',
+    ]
+{% if statsd_debug == 'true' %}
+    ,debug: {{ statsd_debug }}
+{% endif %}
+{% if graphite_host %}
+    ,graphiteHost: "{{ graphite_host }}"
+    ,graphitePort: {{ graphite_port }}
+{% endif %}
+{% if delete_idle_stats == 'true' %}
+    ,deleteIdleStats: true
+{% endif %}
+}

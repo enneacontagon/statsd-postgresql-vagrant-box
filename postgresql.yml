@@ -1,0 +1,27 @@
+---
+- name: postgresql
+  hosts: graphite-grafana
+  sudo: yes
+
+  vars:
+    dbname: statsd
+    dbuser: postgres
+
+  tasks:
+  - name: apt-get install postgresql postgresql-contrib libpq-dev python-psycopg2
+    apt: "name={{ item }} state=present"
+    with_items:
+      - postgresql
+      - postgresql-contrib
+      - libpq-dev
+      - python-psycopg2
+
+  - name: Ensure the PostgreSQL service is running
+    service: name=postgresql state=started enabled=yes
+  
+  - name: ensure the database is present
+    postgresql_db: >
+      state=present
+      db={{dbname}}
+      login_user={{dbuser}}
+    sudo_user: postgres
